@@ -11,6 +11,21 @@
 | `data/vehicles.json` | 正式資料（array，一台車一個 element） |
 | `examples/vehicles.example.json` | 填寫範例（數字是示意，非真實行情） |
 | `validate.py` | 驗證 + 自動重算衍生欄位 |
+| `index.html` | 靜態檢視頁：10 年總成本、每月平均與成本組成圖 |
+
+## 檢視
+
+```sh
+python3 -m http.server 8791
+# 瀏覽器開 http://127.0.0.1:8791/index.html
+```
+
+頁面沒有任何外部相依（圖表是手刻 SVG），資料讀取順序是
+`data/vehicles.json` → `examples/vehicles.example.json` → 內建範例副本，
+所以 `data/vehicles.json` 還是空的時候會自動顯示範例車。
+直接雙擊 `index.html`（`file://`）也能看，但瀏覽器會擋住讀檔，只會顯示內建範例副本。
+
+右上角可切換年行駛里程 6,000 / 7,000 / 8,000 km，只影響累積里程與每公里成本。
 
 ## 欄位對照（你的原始名詞 → schema 欄位）
 
