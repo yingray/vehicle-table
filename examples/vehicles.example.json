@@ -1,0 +1,152 @@
+[
+  {
+    "id": "toyota-corolla-cross-2024-hybrid",
+    "brand": "Toyota",
+    "model": "Corolla Cross",
+    "trim": "旗艦",
+    "model_year": 2024,
+    "powertrain": "hybrid",
+    "currency": "TWD",
+    "assumptions": {
+      "annual_km_low": 6000,
+      "annual_km_high": 8000,
+      "notes": "Low-mileage driver; expect resale slightly above market average curve."
+    },
+    "purchase": {
+      "list_price": 969000,
+      "discounts": 30000,
+      "onroad_fees": 15000,
+      "real_cost": 954000,
+      "purchased_at": "2024-08-01",
+      "source": "example placeholder",
+      "notes": "real_cost = list - discounts + onroad_fees; tax and insurance excluded."
+    },
+    "selling_costs": {
+      "total": 4500,
+      "items": [
+        { "name": "ownership transfer", "cost": 1500 },
+        { "name": "detailing before sale", "cost": 3000 }
+      ],
+      "notes": "example placeholder"
+    },
+    "value_checkpoints": [
+      {
+        "years": 1,
+        "assumed_km": 7000,
+        "private_sale_price": 800000,
+        "dealer_tradein_price": 750000,
+        "retention_ratio": 0.839,
+        "depreciation_amount": 154000,
+        "source": "example placeholder",
+        "confidence": "low",
+        "as_of": "2026-08-11"
+      },
+      {
+        "years": 3,
+        "assumed_km": 21000,
+        "private_sale_price": 690000,
+        "retention_ratio": 0.723,
+        "depreciation_amount": 264000,
+        "source": "example placeholder",
+        "confidence": "low",
+        "as_of": "2026-08-11"
+      },
+      {
+        "years": 5,
+        "assumed_km": 35000,
+        "private_sale_price": 580000,
+        "retention_ratio": 0.608,
+        "depreciation_amount": 374000,
+        "source": "example placeholder",
+        "confidence": "low",
+        "as_of": "2026-08-11"
+      },
+      {
+        "years": 7,
+        "assumed_km": 49000,
+        "private_sale_price": 480000,
+        "retention_ratio": 0.503,
+        "depreciation_amount": 474000,
+        "source": "example placeholder",
+        "confidence": "low",
+        "as_of": "2026-08-11"
+      },
+      {
+        "years": 10,
+        "assumed_km": 70000,
+        "private_sale_price": 350000,
+        "retention_ratio": 0.367,
+        "depreciation_amount": 604000,
+        "source": "example placeholder",
+        "confidence": "low",
+        "as_of": "2026-08-11"
+      }
+    ],
+    "maintenance": {
+      "plan_notes": "Official Toyota service every 10000 km or 1 year.",
+      "checkpoints": [
+        {
+          "years": 1,
+          "assumed_km": 7000,
+          "period_cost": 3500,
+          "cumulative_cost": 3500,
+          "major_items": ["oil + filter"],
+          "source": "example placeholder",
+          "confidence": "low",
+          "as_of": "2026-08-11"
+        },
+        {
+          "years": 3,
+          "assumed_km": 21000,
+          "period_cost": 12000,
+          "cumulative_cost": 15500,
+          "major_items": ["oil x2", "cabin filter", "brake fluid"],
+          "source": "example placeholder",
+          "confidence": "low",
+          "as_of": "2026-08-11"
+        },
+        {
+          "years": 5,
+          "assumed_km": 35000,
+          "period_cost": 18000,
+          "cumulative_cost": 33500,
+          "major_items": ["oil x2", "tires x4"],
+          "source": "example placeholder",
+          "confidence": "low",
+          "as_of": "2026-08-11"
+        },
+        {
+          "years": 7,
+          "assumed_km": 49000,
+          "period_cost": 25000,
+          "cumulative_cost": 58500,
+          "major_items": ["oil x2", "brake pads", "12V battery"],
+          "source": "example placeholder",
+          "confidence": "low",
+          "as_of": "2026-08-11"
+        },
+        {
+          "years": 10,
+          "assumed_km": 70000,
+          "period_cost": 45000,
+          "cumulative_cost": 103500,
+          "major_items": ["oil x3", "tires x4", "coolant", "spark plugs"],
+          "source": "example placeholder",
+          "confidence": "low",
+          "as_of": "2026-08-11"
+        }
+      ]
+    },
+    "cost_summary": [
+      { "years": 1, "total_cost": 162000, "cost_per_year": 162000, "cost_per_km": 23.14 },
+      { "years": 3, "total_cost": 284000, "cost_per_year": 94667, "cost_per_km": 13.52 },
+      { "years": 5, "total_cost": 412000, "cost_per_year": 82400, "cost_per_km": 11.77 },
+      { "years": 7, "total_cost": 537000, "cost_per_year": 76714, "cost_per_km": 10.96 },
+      { "years": 10, "total_cost": 712000, "cost_per_year": 71200, "cost_per_km": 10.17 }
+    ],
+    "sources": [
+      { "name": "example placeholder", "note": "All numbers here are illustrative, not real market data." }
+    ],
+    "updated_at": "2026-08-11"
+  }
+]
