@@ -12,6 +12,12 @@
 | `examples/vehicles.example.json` | 填寫範例（數字是示意，非真實行情） |
 | `validate.py` | 驗證 + 自動重算衍生欄位 |
 | `index.html` | 靜態檢視頁：10 年總成本、每月平均與成本組成圖 |
+| `docs/METHODOLOGY.md` | **數字怎麼推估出來的** —— 成本模型、五階段工作流、已知弱點 |
+| `docs/agent-rules.md` | 可直接貼進 prompt 的 agent 規則原文 |
+| `TODO.md` | 已知但還沒修的資料品質問題 |
+
+要新增車款或更新行情，**先讀 `docs/METHODOLOGY.md`**。裡面每一條規則都對應一個真實
+踩過的坑，照著做才不會產出看起來合理但其實錯掉的數字。
 
 ## 檢視
 
