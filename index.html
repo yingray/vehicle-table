@@ -151,12 +151,29 @@ function costAt(v, years) {
   };
 }
 
-const name = v => [v.brand, v.model].join(" ");
 const full = v => [v.brand, v.model, v.trim].filter(Boolean).join(" ");
+
+// Chart labels: brand + model is enough until two cars share it (three RAV4 trims,
+// two Camrys), at which point the trim is the only thing telling them apart.
+let AMBIGUOUS = new Set();
+function indexLabels(rows) {
+  const seen = new Map();
+  for (const r of rows) {
+    const k = r.v.brand + " " + r.v.model;
+    seen.set(k, (seen.get(k) || 0) + 1);
+  }
+  AMBIGUOUS = new Set([...seen].filter(([, n]) => n > 1).map(([k]) => k));
+}
+function name(v) {
+  const base = v.brand + " " + v.model;
+  if (!AMBIGUOUS.has(base) || !v.trim) return base;
+  const t = v.trim.length > 14 ? v.trim.slice(0, 13) + "…" : v.trim;
+  return base + " " + t;
+}
 
 /* ---------- overview: every car on one axis ---------- */
 function rankedChart(rows) {
-  const W = 940, RH = 26, L = 178, R = 96, T = 26;
+  const W = 940, RH = 26, L = 232, R = 96, T = 26;
   const H = T + rows.length * RH + 6;
   const max = Math.max(...rows.map(r => r.c.total)) * 1.02;
   const scale = (W - L - R) / max;
@@ -287,6 +304,7 @@ function render() {
     price: r => r.v.purchase.real_cost,
   }[sortBy];
   rows.sort((a, b) => key(a) - key(b));
+  indexLabels(rows);
 
   out.innerHTML = `
     <div class="panel">
