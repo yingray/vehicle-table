@@ -11,7 +11,10 @@
 | `data/vehicles.json` | 正式資料（array，一台車一個 element） |
 | `examples/vehicles.example.json` | 填寫範例（數字是示意，非真實行情） |
 | `validate.py` | 驗證 + 自動重算衍生欄位 |
-| `index.html` | 靜態檢視頁：10 年總成本、每月平均與成本組成圖 |
+| `tools/build_web_data.py` | 把 `data/vehicles.json` 拆成頁面用的兩個檔 |
+| `web/car-data.js` | 產生檔：排行榜、表格、圖表要的精簡欄位（首屏載入） |
+| `web/car-detail.js` | 產生檔：來源與推算紀錄（開明細才載入） |
+| `index.html` | 靜態檢視頁：排行榜、成本結構、完整比較、並排比較、廠牌、明細抽屜 |
 | `docs/METHODOLOGY.md` | **數字怎麼推估出來的** —— 成本模型、五階段工作流、已知弱點 |
 | `docs/agent-rules.md` | 可直接貼進 prompt 的 agent 規則原文 |
 | `TODO.md` | 已知但還沒修的資料品質問題 |
@@ -22,15 +25,35 @@
 ## 檢視
 
 ```sh
+python3 tools/build_web_data.py   # 改過 data/vehicles.json 才需要重跑
 python3 -m http.server 8791
 # 瀏覽器開 http://127.0.0.1:8791/index.html
 ```
 
-頁面沒有任何外部相依（圖表是手刻 SVG），資料讀 `data/vehicles.json`，
-沒有就退回 `examples/vehicles.example.json`。
-瀏覽器會擋住 `file://` 讀檔，所以一定要用上面的 server 開，雙擊沒有用。
+頁面讀 `web/car-data.js`，不直接讀 `data/vehicles.json` —— 原始檔有 3.7 MB，
+其中九成是來源說明文字。`tools/build_web_data.py` 把它拆成首屏要的精簡資料
+（`web/car-data.js`）與開明細才載入的來源紀錄（`web/car-detail.js`）。
+兩個都是產生檔，直接編輯會在下次重跑時被蓋掉。
 
-上方可切換年行駛里程（6,000 / 7,000 / 8,000 km，只影響每公里成本）與排序方式。
+頁面用 ES module 載資料，瀏覽器會擋住 `file://`，所以一定要用上面的 server 開，
+雙擊沒有用。字型走 Google Fonts（Chivo / Chivo Mono / Noto Sans TC），
+離線時退回系統字型，其餘功能不受影響。
+
+上方可切換持有年限（1 / 3 / 5 / 7 / 10 年）、單位（總額 / 每年 / 每月）與排序方式。
+四個呈現選項用網址參數調整：
+
+| 參數 | 值 | 預設 |
+|---|---|---|
+| `basis` | `兩者並列` / `自售價` / `車商收購價` | `兩者並列` |
+| `barColor` | `廠牌識別色` / `單色琥珀` | `廠牌識別色` |
+| `confidence` | `0` 關閉信心標記 | 顯示 |
+| `rankCount` | 5–40，排行榜預設顯示幾名 | `15` |
+
+### 車體型式與價格帶
+
+`body`（房車 / SUV / 旅行車 / MPV / 跑車）不在 schema 裡，由
+`tools/build_web_data.py` 的 `BODY_BY_MODEL` 對照表指定。新增車款時如果沒有對照，
+建置會直接失敗 —— 這是刻意的，分類要由人決定。`band`（價格帶）則由 `real_cost` 自動分級。
 
 ## 資料現況與可信度
 
@@ -89,6 +112,7 @@ python3 -m http.server 8791
 3. 到 8891 / 車商報價查該車款 1/3/5/7/10 年、對應低里程帶的售價，
    填進 `value_checkpoints[].private_sale_price`。
 4. 查原廠保養手冊或車主社群，粗估各區間保養費填 `period_cost`。
-5. 跑 `python3 validate.py data/vehicles.json --fix`。
+5. 跑 `python3 validate.py data/vehicles.json --fix`，再跑
+   `python3 tools/build_web_data.py` 把新車帶進頁面。
 6. `cost_summary` 就是答案：每年攤提成本 (`cost_per_year`) 與每公里成本 (`cost_per_km`)，
    拿這兩個數字跨車款比較。
