@@ -1,327 +1,835 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>車款持有成本 — 10 年試算</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>真實養車成本 — 買入價 − 賣出價 + 保養費</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chivo:wght@400;500;700&family=Chivo+Mono:wght@400;500&family=Noto+Sans+TC:wght@400;500;700&display=swap">
 <style>
-  :root {
-    --bg: #f6f5f3;
-    --surface: #ffffff;
-    --ink: #1c1b19;
-    --ink-soft: #6b6862;
-    --line: #e2dfd9;
-    --accent: #1f5f4f;
-    --dep: #1f5f4f;
-    --maint: #c98a3c;
-    --sell: #a8a29a;
-    --shadow: 0 1px 2px rgba(28,27,25,.06), 0 8px 24px rgba(28,27,25,.05);
-  }
-  @media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) {
-      --bg: #17171a; --surface: #1f1f23; --ink: #ecebe8; --ink-soft: #9b9791;
-      --line: #33333a; --accent: #6cc0a5; --dep: #6cc0a5; --maint: #e0a95f;
-      --sell: #7d7a76;
-      --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.3);
-    }
-  }
-  * { box-sizing: border-box; }
-  body {
-    margin: 0; padding: 40px 24px 80px;
-    background: var(--bg); color: var(--ink);
-    font: 16px/1.6 "Helvetica Neue", -apple-system, "PingFang TC", "Noto Sans TC", sans-serif;
-    -webkit-font-smoothing: antialiased;
-  }
-  .wrap { max-width: 1000px; margin: 0 auto; }
-  h1 { font-size: 28px; letter-spacing: -.01em; margin: 0 0 6px; font-weight: 600; }
-  .sub { color: var(--ink-soft); font-size: 14px; margin: 0; }
-  h3 { font-size: 15px; font-weight: 600; margin: 34px 0 12px; }
-  .controls {
-    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
-    margin: 22px 0 4px; padding: 14px 16px;
-    background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
-  }
-  .controls label { font-size: 13px; color: var(--ink-soft); }
-  select {
-    font: inherit; font-size: 14px; padding: 5px 8px;
-    border: 1px solid var(--line); border-radius: 6px;
-    background: var(--bg); color: var(--ink);
-  }
-  .src { font-size: 12px; color: var(--ink-soft); margin-left: auto; }
-  .panel {
-    background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
-    padding: 22px 24px; box-shadow: var(--shadow); margin-bottom: 18px;
-  }
-  .chart { overflow-x: auto; }
-  svg { display: block; }
-  .legend { display: flex; gap: 16px; flex-wrap: wrap; font-size: 12px; color: var(--ink-soft); margin-top: 12px; }
-  .legend i { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: 5px; }
-  table { border-collapse: collapse; width: 100%; font-size: 13px; }
-  th, td { padding: 7px 10px; text-align: right; border-bottom: 1px solid var(--line); white-space: nowrap; }
-  th { color: var(--ink-soft); font-weight: 500; font-size: 12px; }
-  th:first-child, td:first-child { text-align: left; }
-  td.num { font-variant-numeric: tabular-nums; }
-  tbody tr:hover { background: color-mix(in srgb, var(--accent) 6%, transparent); }
-  details { border-bottom: 1px solid var(--line); }
-  details:last-child { border-bottom: 0; }
-  summary {
-    cursor: pointer; padding: 12px 2px; font-size: 14px;
-    display: flex; align-items: baseline; gap: 10px; list-style: none;
-  }
-  summary::-webkit-details-marker { display: none; }
-  summary::before { content: "▸"; color: var(--ink-soft); font-size: 11px; }
-  details[open] summary::before { content: "▾"; }
-  summary .nm { font-weight: 500; }
-  summary .mo { margin-left: auto; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
-  .body { padding: 4px 0 24px 20px; }
-  .figs { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 22px; }
-  .fig { flex: 1 1 130px; }
-  .fig .k { font-size: 12px; color: var(--ink-soft); margin-bottom: 2px; }
-  .fig .v { font-size: 22px; font-weight: 600; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
-  .fig .u { font-size: 12px; color: var(--ink-soft); font-weight: 400; }
-  .sec { font-size: 12px; color: var(--ink-soft); margin: 0 0 8px; }
-  .split { display: grid; grid-template-columns: 1fr; gap: 26px; }
-  @media (min-width: 760px) { .split { grid-template-columns: 1fr 1fr; } }
-  .note { font-size: 12.5px; color: var(--ink-soft); margin-top: 16px; }
-  .badge {
-    font-size: 11px; padding: 1px 6px; border-radius: 4px;
-    border: 1px solid var(--line); color: var(--ink-soft);
-  }
-  .err { font-size: 14px; color: var(--ink-soft); }
-  .err code { background: var(--bg); padding: 2px 6px; border-radius: 4px; font-size: 13px; }
+:root{
+  --bg:#1A1814; --panel:#221F19; --drawer:#1E1B16; --track:#231F1A;
+  --ink:#F2EDE3; --muted:#A79E8E;
+  --line:#302B24; --line-strong:#3A352C; --line-soft:#2A251F; --line-maint:#4A4335;
+  --accent:#E0A03C; --accent-hi:#F0BE6A; --accent-dim:#5C4622; --accent-ink:#F2D9A8;
+  --maint:#6E6455; --sell:#3A352C;
+  --gutter:clamp(16px,4vw,44px);
+}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Noto Sans TC","Chivo",system-ui,sans-serif;font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased}
+*,*::before,*::after{box-sizing:border-box}
+a{color:var(--accent);text-decoration:none}
+a:hover{color:var(--accent-hi)}
+h1,h2,h3,h4,h5{font-family:"Chivo","Noto Sans TC",sans-serif;font-weight:500;line-height:1.1;letter-spacing:-0.02em;margin:0}
+p{margin:0}
+table{border-collapse:collapse}
+summary{cursor:pointer;list-style:none}
+summary::-webkit-details-marker{display:none}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+::selection{background:rgba(224,160,60,.3)}
+input,select,button{font-family:inherit}
+
+.mono{font-family:"Chivo Mono",ui-monospace,monospace}
+.muted{color:var(--muted)}
+.wrap{max-width:1240px;margin:0 auto;padding-left:var(--gutter);padding-right:var(--gutter)}
+.eyebrow{font-family:"Chivo Mono",ui-monospace,monospace;font-size:11px;letter-spacing:.18em;color:var(--accent);margin-bottom:11px}
+.label{font-family:"Chivo Mono",ui-monospace,monospace;font-size:10px;letter-spacing:.12em;color:var(--muted)}
+.h2{font-size:clamp(23px,3.3vw,33px)}
+.dot{flex:none;width:10px;height:10px;border-radius:50%;box-shadow:inset 0 0 0 1px rgba(0,0,0,.35)}
+
+/* nav ------------------------------------------------------------------ */
+nav{position:relative;display:flex;flex-wrap:wrap;align-items:center;gap:8px 22px;padding-top:18px;padding-bottom:18px;border-bottom:1px solid var(--line)}
+nav .brand{margin-right:auto;font-family:"Chivo",sans-serif;font-weight:700;font-size:17px;letter-spacing:-0.01em}
+nav .tag{margin-left:10px;padding:3px 7px;font-family:"Chivo Mono",ui-monospace,monospace;font-size:10px;font-weight:400;letter-spacing:.12em;color:var(--accent);border:1px solid var(--accent-dim)}
+nav a{color:var(--muted);font-size:13px}
+nav a:hover{color:var(--accent)}
+
+/* header --------------------------------------------------------------- */
+header{padding-top:clamp(30px,6vw,74px);padding-bottom:clamp(24px,4vw,44px)}
+header .kicker{font-family:"Chivo Mono",ui-monospace,monospace;font-size:11px;letter-spacing:.18em;color:var(--accent);margin-bottom:20px}
+header h1{font-size:clamp(31px,6.2vw,60px);max-width:17em;margin-bottom:clamp(20px,3vw,30px);text-wrap:pretty}
+.formula{display:flex;flex-wrap:wrap;align-items:center;gap:9px;margin-bottom:clamp(22px,3vw,32px);font-family:"Chivo",sans-serif;font-size:clamp(14px,2.1vw,18px)}
+.formula .term{padding:9px 15px;border:1px solid var(--line-strong)}
+.formula .term.lead{border-color:var(--accent);color:var(--accent)}
+.formula .term.result{background:var(--accent);color:var(--bg);font-weight:500;border-color:var(--accent)}
+.formula .op{color:var(--muted)}
+header .lede{max-width:50em;color:var(--muted);font-size:15px;line-height:1.8;margin-bottom:22px}
+.facts{display:flex;flex-wrap:wrap;border-top:1px solid var(--line);border-left:1px solid var(--line)}
+.facts>div{flex:1 1 190px;padding:14px 16px;border-right:1px solid var(--line);border-bottom:1px solid var(--line)}
+.facts .label{display:block;margin-bottom:5px}
+.facts .v{font-size:14px}
+
+/* sticky controls ------------------------------------------------------ */
+.controls{position:sticky;top:0;z-index:20;background:rgba(26,24,20,.94);backdrop-filter:blur(10px);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.controls .wrap{padding-top:11px;padding-bottom:11px;display:flex;flex-wrap:wrap;gap:12px 26px;align-items:center}
+.control{display:flex;align-items:center;gap:11px}
+.control .label{font-size:10px;letter-spacing:.14em}
+.seg{display:flex;flex-wrap:wrap;border:1px solid var(--line-strong)}
+.seg button{all:unset;cursor:pointer;padding:7px 13px;font-family:"Chivo","Noto Sans TC",sans-serif;font-size:13px;color:var(--muted)}
+.seg button:hover{color:var(--ink)}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--bg);font-weight:500}
+
+section{padding-top:clamp(42px,6vw,76px);scroll-margin-top:74px}
+#rank{padding-top:clamp(34px,5vw,60px)}
+#method{padding-bottom:clamp(50px,7vw,100px)}
+
+/* ranking -------------------------------------------------------------- */
+.rank-head{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:14px}
+.rank-note{font-size:13px;color:var(--muted);max-width:26em;line-height:1.65}
+.legend{display:flex;flex-wrap:wrap;gap:7px 16px;margin:22px 0 6px;padding:13px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.legend .label{align-self:center;font-size:10px;letter-spacing:.14em}
+.legend button{all:unset;cursor:pointer;display:inline-flex;align-items:center;gap:7px;padding:4px 9px;font-size:12px;border:1px solid transparent;color:var(--muted)}
+.legend button:hover{color:var(--ink)}
+.legend button[aria-pressed="true"]{border-color:var(--accent);color:var(--ink)}
+.legend i{width:9px;height:9px;border-radius:50%;flex:none;box-shadow:inset 0 0 0 1px rgba(0,0,0,.35)}
+.rank-row{display:flex;flex-wrap:wrap;align-items:center;gap:9px 18px;padding:13px 0;border-bottom:1px solid var(--line-soft)}
+.rank-row .pos{flex:none;width:32px;font-family:"Chivo Mono",ui-monospace,monospace;font-size:12px;color:var(--muted)}
+.rank-row .who{flex:1 1 200px;min-width:0;display:flex;align-items:flex-start;gap:9px}
+.rank-row .who .dot{margin-top:6px}
+.linkish{all:unset;cursor:pointer;display:block;max-width:100%}
+.linkish:hover{color:var(--accent)}
+.rank-row .name{display:block;font-family:"Chivo","Noto Sans TC",sans-serif;font-size:16px;line-height:1.25}
+.rank-row .sub{display:block;font-size:12px;color:var(--muted);margin-top:3px}
+.rank-row .bars{flex:2 1 330px;min-width:220px}
+.bar{position:relative;height:14px;background:var(--track)}
+.bar .lo{position:absolute;left:0;top:0;bottom:0}
+.bar .hi{position:absolute;top:0;bottom:0}
+.bar-labels{display:flex;flex-wrap:wrap;gap:3px 9px;margin-top:6px;font-family:"Chivo Mono",ui-monospace,monospace;font-size:12.5px}
+.rank-row .aside{flex:0 1 160px;display:flex;flex-wrap:wrap;gap:3px 12px;font-family:"Chivo Mono",ui-monospace,monospace;font-size:11.5px;color:var(--muted)}
+.rank-row .tail{flex:none;display:flex;align-items:center;gap:8px}
+.pill{display:inline-block;padding:2px 8px;font-size:11px}
+.pill.high{background:var(--accent-dim);color:var(--accent-ink)}
+.pill.mid{color:var(--muted);border:1px solid var(--line-strong)}
+.pill.low{color:var(--muted);border:1px dashed var(--line-maint)}
+.chip{all:unset;cursor:pointer;padding:5px 10px;font-size:11.5px;border:1px solid var(--line-strong);color:var(--muted)}
+.chip:hover{border-color:var(--accent);color:var(--accent)}
+.chip[aria-pressed="true"]{border-color:var(--accent);color:var(--accent)}
+.rank-foot{display:flex;flex-wrap:wrap;gap:14px;align-items:center;margin-top:18px}
+.ghost{all:unset;cursor:pointer;padding:9px 16px;border:1px solid var(--accent);color:var(--accent);font-family:"Chivo",sans-serif;font-size:13px}
+.ghost:hover{background:rgba(224,160,60,.12)}
+
+/* structure ------------------------------------------------------------ */
+.legend-static{display:flex;flex-wrap:wrap;gap:8px 18px;margin-bottom:22px;font-family:"Chivo Mono",ui-monospace,monospace;font-size:11px;color:var(--muted)}
+.legend-static span{display:inline-flex;align-items:center;gap:7px}
+.legend-static i{display:block;width:18px;height:8px}
+.struct{display:flex;flex-direction:column;gap:20px}
+.struct-head{display:flex;flex-wrap:wrap;justify-content:space-between;gap:5px 16px;margin-bottom:7px}
+.struct-head .who{display:inline-flex;align-items:center;gap:8px;font-family:"Chivo","Noto Sans TC",sans-serif;font-size:15px}
+.struct-head .who i{width:9px;height:9px;border-radius:50%}
+.struct-head .nums{color:var(--muted);font-family:"Chivo Mono",ui-monospace,monospace;font-size:12px}
+.struct-head b{color:var(--ink);font-weight:500}
+.struct-bar{display:flex;height:20px;background:var(--track)}
+
+/* table ---------------------------------------------------------------- */
+.filters{display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));gap:11px}
+.filters label{display:block}
+.filters .label{display:block;margin-bottom:5px}
+.filters input,.filters select{width:100%;min-height:36px;padding:7px 10px;font-size:14px;color:var(--ink);background:var(--panel);border:1px solid var(--line-strong);caret-color:var(--accent)}
+.filter-foot{display:flex;flex-wrap:wrap;align-items:center;gap:14px;margin:14px 0 18px}
+.linkbtn{all:unset;cursor:pointer;color:var(--accent);font-size:13px}
+.linkbtn:hover{color:var(--accent-hi)}
+.scroller{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table.grid{width:100%;min-width:960px;font-size:14px}
+table.grid thead tr{border-bottom:1px solid var(--line-strong)}
+table.grid th{padding:9px 8px;font-family:"Chivo Mono",ui-monospace,monospace;font-size:10px;font-weight:400;letter-spacing:.12em;color:var(--muted);text-align:right}
+table.grid th:first-child,table.grid th.left{text-align:left}
+table.grid th.center{text-align:center}
+table.grid th.sortable{cursor:pointer}
+table.grid th.sortable:hover{color:var(--ink)}
+table.grid th.cost{color:var(--accent)}
+table.grid tbody tr{border-bottom:1px solid var(--line-soft)}
+table.grid tbody tr:hover{background:rgba(224,160,60,.05)}
+table.grid td{padding:9px 8px;text-align:right;font-family:"Chivo Mono",ui-monospace,monospace;font-size:13px}
+table.grid td.left{text-align:left;font-family:inherit}
+table.grid td.center{text-align:center}
+table.grid td.soft{color:var(--muted)}
+table.grid td.cost{color:var(--accent)}
+.cell-car{display:flex;align-items:flex-start;gap:8px}
+.cell-car .dot{width:9px;height:9px;margin-top:5px}
+.cell-car .name{display:block;font-size:14px}
+.cell-car .trim{display:block;font-size:11px;color:var(--muted)}
+.empty{padding:26px 8px;color:var(--muted);font-size:13px}
+
+/* compare / brands ----------------------------------------------------- */
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,262px),1fr));gap:13px}
+.cards.brands{grid-template-columns:repeat(auto-fit,minmax(min(100%,228px),1fr));gap:12px}
+.card{border:1px solid var(--line-strong);background:var(--panel)}
+.card .head{padding:14px 16px;border-bottom:1px solid var(--line-strong)}
+.card .head .row{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.card .head .name{font-family:"Chivo","Noto Sans TC",sans-serif;font-size:17px;line-height:1.2}
+.card .head .sub{font-size:11px;color:var(--muted);margin-top:4px}
+.card .body{padding:4px 16px 12px}
+.metric{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid var(--line-soft);font-size:13px}
+.metric .k{color:var(--muted)}
+.metric .v{font-family:"Chivo Mono",ui-monospace,monospace;text-align:right}
+.brand-card{border:1px solid var(--line-strong);background:var(--panel);padding:15px 16px}
+.brand-card .top{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:10px}
+.brand-card .bname{font-family:"Chivo",sans-serif;font-size:16px}
+.brand-card .count{font-family:"Chivo Mono",ui-monospace,monospace;font-size:11px;color:var(--muted)}
+.brand-card .big{font-family:"Chivo Mono",ui-monospace,monospace;font-size:25px;color:var(--ink);letter-spacing:-0.01em}
+.brand-card .cap{font-size:11px;color:var(--muted);margin-top:3px}
+.brand-card .rule{height:1px;background:var(--line-strong);margin:12px 0}
+.brand-card .best{font-size:12px;color:var(--muted);line-height:1.55}
+.note{font-size:12px;color:var(--muted);line-height:1.75}
+
+/* method --------------------------------------------------------------- */
+.method{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,258px),1fr));border-top:1px solid var(--line);border-left:1px solid var(--line)}
+.method>div{padding:18px;border-right:1px solid var(--line);border-bottom:1px solid var(--line)}
+.method h5{font-size:15px;margin-bottom:9px}
+.method p{font-size:13px;color:var(--muted);line-height:1.8}
+
+/* detail drawer -------------------------------------------------------- */
+.overlay{position:fixed;inset:0;z-index:50;display:flex;justify-content:flex-end;background:rgba(10,9,7,.72)}
+.overlay[hidden]{display:none}
+.drawer{width:min(730px,100%);height:100%;overflow-y:auto;background:var(--drawer);border-left:3px solid var(--line-strong);padding:clamp(16px,3vw,30px)}
+.drawer .top{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:18px}
+.drawer h3{font-size:clamp(20px,3vw,27px);margin-bottom:6px}
+.drawer .sub{font-size:13px;color:var(--muted)}
+.closebtn{all:unset;cursor:pointer;padding:7px 13px;border:1px solid var(--line-strong);font-size:13px}
+.closebtn:hover{border-color:var(--accent);color:var(--accent)}
+.hero{display:grid;grid-template-columns:repeat(auto-fit,minmax(136px,1fr));border-top:1px solid var(--line);border-left:1px solid var(--line);margin-bottom:24px}
+.hero>div{padding:12px 14px;border-right:1px solid var(--line);border-bottom:1px solid var(--line)}
+.hero .label{display:block;margin-bottom:6px}
+.hero .v{font-family:"Chivo Mono",ui-monospace,monospace;font-size:18px}
+.drawer h5{font-size:15px;margin-bottom:9px}
+.drawer .para{font-size:13px;color:var(--muted);line-height:1.75;margin-bottom:24px}
+.drawer table.grid{min-width:640px;font-size:13px}
+.drawer table.grid th,.drawer table.grid td{padding:8px}
+.timeline{display:flex;flex-direction:column;gap:14px;margin-bottom:26px}
+.timeline>div{padding-left:14px;border-left:2px solid var(--line-maint)}
+.timeline .row{display:flex;flex-wrap:wrap;gap:7px 14px;align-items:baseline;margin-bottom:6px}
+.timeline .win{font-family:"Chivo Mono",ui-monospace,monospace;font-size:13px}
+.timeline .cost{font-family:"Chivo Mono",ui-monospace,monospace;font-size:13px;color:var(--accent)}
+.timeline .cum{font-size:11px;color:var(--muted)}
+.timeline ul{margin:0;padding-left:16px;font-size:12px;color:var(--muted);line-height:1.75}
+details.sources{border-top:1px solid var(--line-strong);padding-top:14px}
+details.sources>summary{font-family:"Chivo",sans-serif;font-size:14px;color:var(--accent)}
+.src-groups{margin-top:14px;display:flex;flex-direction:column;gap:16px}
+.src-group .label{display:block;margin-bottom:7px}
+.src-list{display:flex;flex-direction:column;gap:12px}
+.src-list .y{font-family:"Chivo Mono",ui-monospace,monospace;font-size:11.5px;color:var(--accent);margin-bottom:4px}
+.src-list p{font-size:12px;color:var(--muted);line-height:1.75}
+.src-list a{font-size:12px}
+.src-list a+p{margin-top:4px}
 </style>
 </head>
 <body>
-<div class="wrap">
-  <h1>車款持有成本 — 10 年試算</h1>
-  <p class="sub">成本 = 折舊 + 保養 + 賣出費用。稅金與保險不計（與車種、廠牌幾乎無關）。</p>
 
-  <div class="controls">
-    <label for="km">年行駛里程</label>
-    <select id="km">
-      <option value="6000">6,000 km</option>
-      <option value="7000" selected>7,000 km</option>
-      <option value="8000">8,000 km</option>
-    </select>
-    <label for="sort" style="margin-left:8px">排序</label>
-    <select id="sort">
-      <option value="monthly">每月成本</option>
-      <option value="total">10 年總成本</option>
-      <option value="retention">10 年殘值率</option>
-      <option value="price">車價</option>
-    </select>
-    <span class="src" id="src"></span>
+<div style="min-height:100vh">
+
+<nav class="wrap">
+  <span class="brand">真實養車成本<span class="tag">TW 2026</span></span>
+  <a href="#rank">排行榜</a>
+  <a href="#structure">成本結構</a>
+  <a href="#table">完整比較</a>
+  <a href="#compare">並排比較</a>
+  <a href="#brands">廠牌</a>
+  <a href="#method">方法論</a>
+</nav>
+
+<header class="wrap">
+  <div class="kicker">一台車真正的開銷</div>
+  <h1>車價不是成本。十年後你手上少掉的錢，才是成本。</h1>
+  <div class="formula">
+    <span class="term lead">買入價</span>
+    <span class="op">−</span>
+    <span class="term">賣出價</span>
+    <span class="op">+</span>
+    <span class="term">保養費</span>
+    <span class="op">=</span>
+    <span class="term result">真實成本</span>
   </div>
+  <p class="lede">稅金、油錢、電費、保險不列入計算——理論上同級車之間差距有限，而且會被折舊的量級蓋掉。這裡只算三件事：你付出去的、你賣回來的、你在原廠帳單上花掉的。</p>
+  <div class="facts">
+    <div><span class="label">里程假設</span><div class="v">每年 7,000 km · 低里程用車</div></div>
+    <div><span class="label">殘值基準</span><div class="v">自售價與車商收購價兩端</div></div>
+    <div><span class="label">資料庫</span><div class="v mono" id="carCount">載入中</div></div>
+  </div>
+</header>
 
-  <div id="out"></div>
+<div class="controls">
+  <div class="wrap">
+    <div class="control"><span class="label">持有</span><div class="seg" id="yearSeg"></div></div>
+    <div class="control"><span class="label">單位</span><div class="seg" id="unitSeg"></div></div>
+    <div class="control"><span class="label">排序</span><div class="seg" id="sortSeg"></div></div>
+  </div>
 </div>
 
-<script>
-const SOURCES = ["data/vehicles.json", "examples/vehicles.example.json"];
-const nf = n => Math.round(n).toLocaleString("en-US");
-const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
-
-async function load() {
-  for (const url of SOURCES) {
-    try {
-      const r = await fetch(url, { cache: "no-store" });
-      if (!r.ok) continue;
-      const d = await r.json();
-      if (Array.isArray(d) && d.length) return { data: d, from: url };
-    } catch (e) { /* file:// blocks fetch — fall through to the hint below */ }
-  }
-  return { data: [], from: null };
-}
-
-// Pull the numbers for one holding period out of a vehicle document.
-function costAt(v, years) {
-  const vc = v.value_checkpoints.find(c => c.years === years);
-  const mc = v.maintenance.checkpoints.find(c => c.years === years);
-  if (!vc) return null;
-  const real = v.purchase.real_cost;
-  const dep = vc.depreciation_amount != null ? vc.depreciation_amount : real - vc.private_sale_price;
-  const maint = mc && mc.cumulative_cost != null ? mc.cumulative_cost : 0;
-  const sell = (v.selling_costs && v.selling_costs.total) || 0;
-  return {
-    years, dep, maint, sell,
-    total: dep + maint + sell,
-    monthly: (dep + maint + sell) / (years * 12),
-    resale: vc.private_sale_price,
-    retention: vc.private_sale_price / real,
-  };
-}
-
-const full = v => [v.brand, v.model, v.trim].filter(Boolean).join(" ");
-
-// Chart labels: brand + model is enough until two cars share it (three RAV4 trims,
-// two Camrys), at which point the trim is the only thing telling them apart.
-let AMBIGUOUS = new Set();
-function indexLabels(rows) {
-  const seen = new Map();
-  for (const r of rows) {
-    const k = r.v.brand + " " + r.v.model;
-    seen.set(k, (seen.get(k) || 0) + 1);
-  }
-  AMBIGUOUS = new Set([...seen].filter(([, n]) => n > 1).map(([k]) => k));
-}
-function name(v) {
-  const base = v.brand + " " + v.model;
-  if (!AMBIGUOUS.has(base) || !v.trim) return base;
-  const t = v.trim.length > 14 ? v.trim.slice(0, 13) + "…" : v.trim;
-  return base + " " + t;
-}
-
-/* ---------- overview: every car on one axis ---------- */
-function rankedChart(rows) {
-  const W = 940, RH = 26, L = 232, R = 96, T = 26;
-  const H = T + rows.length * RH + 6;
-  const max = Math.max(...rows.map(r => r.c.total)) * 1.02;
-  const scale = (W - L - R) / max;
-  let g = "";
-  for (let i = 0; i <= 4; i++) {
-    const val = (max / 4) * i, x = L + val * scale;
-    g += `<line x1="${x}" y1="${T - 8}" x2="${x}" y2="${H - 4}" stroke="var(--line)"/>
-          <text x="${x}" y="${T - 13}" text-anchor="middle" font-size="10" fill="var(--ink-soft)">${nf(val / 10000)}萬</text>`;
-  }
-  rows.forEach((r, i) => {
-    const y = T + i * RH, h = RH - 9;
-    let x = L;
-    for (const [val, fill] of [[r.c.dep, "var(--dep)"], [r.c.maint, "var(--maint)"], [r.c.sell, "var(--sell)"]]) {
-      const w = val * scale;
-      g += `<rect x="${x}" y="${y}" width="${Math.max(w, 0)}" height="${h}" fill="${fill}"><title>${esc(full(r.v))}
-折舊 ${nf(r.c.dep)} ／ 保養 ${nf(r.c.maint)} ／ 賣出 ${nf(r.c.sell)}</title></rect>`;
-      x += w;
-    }
-    g += `<text x="${L - 10}" y="${y + h - 2}" text-anchor="end" font-size="12" fill="var(--ink)">${esc(name(r.v))}</text>
-          <text x="${x + 8}" y="${y + h - 2}" font-size="12" fill="var(--ink-soft)">${nf(r.c.monthly)}/月</text>`;
-  });
-  return `<div class="chart"><svg viewBox="0 0 ${W} ${H}" width="100%" height="${H}" role="img" aria-label="各車款 10 年總成本">${g}</svg></div>
-  <div class="legend"><span><i style="background:var(--dep)"></i>折舊</span><span><i style="background:var(--maint)"></i>保養</span><span><i style="background:var(--sell)"></i>賣出費用</span><span>右側數字為每月平均成本</span></div>`;
-}
-
-function overviewTable(rows, annualKm) {
-  const km = annualKm * 10;
-  const tr = rows.map(r => `<tr>
-    <td>${esc(full(r.v))} <span class="badge">${esc(r.v.powertrain)}</span></td>
-    <td class="num">${nf(r.v.purchase.real_cost)}</td>
-    <td class="num">${nf(r.c.resale)}</td>
-    <td class="num">${(r.c.retention * 100).toFixed(0)}%</td>
-    <td class="num">${nf(r.c.maint)}</td>
-    <td class="num">${nf(r.c.total)}</td>
-    <td class="num"><b>${nf(r.c.monthly)}</b></td>
-    <td class="num">${(r.c.total / km).toFixed(1)}</td>
-  </tr>`).join("");
-  return `<table><thead><tr>
-    <th>車款</th><th>實付車價</th><th>10 年殘值</th><th>殘值率</th>
-    <th>10 年保養</th><th>10 年總成本</th><th>每月平均</th><th>元/km</th>
-  </tr></thead><tbody>${tr}</tbody></table>`;
-}
-
-/* ---------- per-vehicle detail ---------- */
-function stackedBar(c) {
-  const W = 440, H = 40;
-  const seg = [["折舊", c.dep, "var(--dep)"], ["保養", c.maint, "var(--maint)"], ["賣出", c.sell, "var(--sell)"]];
-  let x = 0, parts = "";
-  for (const [n, val, fill] of seg) {
-    const w = (val / c.total) * W - 1, pct = (val / c.total) * 100;
-    parts += `<rect x="${x}" y="0" width="${Math.max(w, 0)}" height="${H}" fill="${fill}" rx="3"><title>${n} NT$${nf(val)}（${pct.toFixed(1)}%）</title></rect>`;
-    if (w > 64) parts += `<text x="${x + 9}" y="${H / 2 + 5}" fill="#fff" font-size="12" font-weight="500">${n} ${pct.toFixed(0)}%</text>`;
-    x += w + 1;
-  }
-  return `<div class="chart"><svg viewBox="0 0 ${W} ${H}" width="100%" height="${H}" preserveAspectRatio="none">${parts}</svg></div>
-  <div class="legend"><span><i style="background:var(--dep)"></i>折舊 ${nf(c.dep)}</span><span><i style="background:var(--maint)"></i>保養 ${nf(c.maint)}</span><span><i style="background:var(--sell)"></i>賣出 ${nf(c.sell)}</span></div>`;
-}
-
-// Monthly cost by holding period — shows the early depreciation hit spreading out.
-function monthlyBars(v) {
-  const pts = v.value_checkpoints.map(c => costAt(v, c.years)).filter(Boolean);
-  if (!pts.length) return "";
-  const W = 440, H = 190, L = 52, B = 28, T = 18;
-  const max = Math.max(...pts.map(p => p.monthly)) * 1.14;
-  const bw = (W - L - 8) / pts.length;
-  let g = "";
-  for (let i = 0; i <= 3; i++) {
-    const val = (max / 3) * i, y = T + (H - T - B) * (1 - val / max);
-    g += `<line x1="${L}" y1="${y}" x2="${W}" y2="${y}" stroke="var(--line)"/>
-          <text x="${L - 8}" y="${y + 4}" text-anchor="end" font-size="10" fill="var(--ink-soft)">${nf(val / 1000)}k</text>`;
-  }
-  pts.forEach((p, i) => {
-    const h = (H - T - B) * (p.monthly / max), x = L + i * bw + bw * 0.2, y = H - B - h, w = bw * 0.6;
-    g += `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="var(--accent)" rx="3" opacity="${p.years === 10 ? 1 : .4}"><title>持有 ${p.years} 年：每月 NT$${nf(p.monthly)}</title></rect>
-          <text x="${x + w / 2}" y="${y - 5}" text-anchor="middle" font-size="10" fill="var(--ink-soft)">${nf(p.monthly / 1000)}k</text>
-          <text x="${x + w / 2}" y="${H - 9}" text-anchor="middle" font-size="11" fill="var(--ink-soft)">${p.years}年</text>`;
-  });
-  return `<div class="chart"><svg viewBox="0 0 ${W} ${H}" width="100%" height="${H}">${g}</svg></div>`;
-}
-
-function detail(v, c, annualKm) {
-  const km = annualKm * 10, c1 = costAt(v, 1);
-  const conf = v.value_checkpoints.map(x => x.confidence);
-  const worst = conf.includes("low") ? "low" : conf.includes("medium") ? "medium" : "high";
-  return `<details><summary>
-      <span class="nm">${esc(full(v))}</span>
-      <span class="badge">${esc(v.powertrain)}</span>
-      <span class="mo">每月 ${nf(c.monthly)}　/　10 年 ${nf(c.total)}</span>
-    </summary>
-    <div class="body">
-      <div class="figs">
-        <div class="fig"><div class="k">實付車價</div><div class="v">${nf(v.purchase.real_cost)}</div></div>
-        <div class="fig"><div class="k">10 年後殘值</div><div class="v">${nf(c.resale)}<span class="u"> ・ ${(c.retention * 100).toFixed(0)}%</span></div></div>
-        <div class="fig"><div class="k">10 年總成本</div><div class="v">${nf(c.total)}</div></div>
-        <div class="fig"><div class="k">每月平均</div><div class="v">${nf(c.monthly)}</div></div>
-        <div class="fig"><div class="k">每公里</div><div class="v">${(c.total / km).toFixed(1)}<span class="u"> 元</span></div></div>
-      </div>
-      <div class="split">
-        <div><p class="sec">10 年成本組成</p>${stackedBar(c)}</div>
-        <div><p class="sec">每月平均成本 × 持有年限</p>${monthlyBars(v)}</div>
-      </div>
-      <p class="note">折舊佔 ${((c.dep / c.total) * 100).toFixed(0)}%、保養佔 ${((c.maint / c.total) * 100).toFixed(0)}%。
-        第 1 年每月 ${nf(c1.monthly)}，第 10 年降到 ${nf(c.monthly)}。<br>
-        保養：${esc(v.maintenance.plan_notes || "—")}<br>
-        估價可信度：<b>${worst}</b>　・　資料更新：${esc(v.updated_at)}</p>
+<section id="rank" class="wrap">
+  <div class="rank-head">
+    <div>
+      <div class="eyebrow">排行榜</div>
+      <h2 class="h2" id="rankTitle">十年真實成本最低的車</h2>
     </div>
-  </details>`;
-}
+    <p class="rank-note" id="rankNote"></p>
+  </div>
+  <div class="legend" id="legend"><span class="label">廠牌</span></div>
+  <div id="rankRows"></div>
+  <div class="rank-foot">
+    <button class="ghost" data-act="rankAll" id="rankAllBtn"></button>
+    <span class="mono" style="font-size:11.5px;color:var(--muted)">實色 = 自售（下限）· 斜紋 = 到車商收購（上限）</span>
+  </div>
+</section>
 
-let DATA = [];
-function render() {
-  const annualKm = +document.getElementById("km").value;
-  const sortBy = document.getElementById("sort").value;
-  const out = document.getElementById("out");
+<section id="structure" class="wrap">
+  <div class="eyebrow">成本結構</div>
+  <h2 class="h2" style="margin-bottom:13px">錢花在哪裡：折舊、保養、讓售</h2>
+  <p class="note" style="max-width:48em;font-size:14px;line-height:1.8;margin-bottom:24px">整條長度是你這段期間掏出去的全部（買入價 + 保養 + 讓售成本）。實色部分是真實成本，最右邊的斜紋是賣車那天拿回來的錢。前六名依目前排序，顏色為廠牌識別色。</p>
+  <div class="legend-static">
+    <span><i style="background:var(--accent)"></i>淨折舊（廠牌色）</span>
+    <span><i style="background:var(--maint)"></i>保養費</span>
+    <span><i style="background:var(--sell)"></i>讓售成本</span>
+    <span><i style="background:repeating-linear-gradient(115deg,#3A352C 0 4px,transparent 4px 8px);box-shadow:inset 0 0 0 1px var(--line-strong)"></i>賣車回收</span>
+  </div>
+  <div class="struct" id="structRows"></div>
+</section>
 
-  if (!DATA.length) {
-    out.innerHTML = `<div class="panel"><p class="err">讀不到資料。瀏覽器會擋住 <code>file://</code> 讀檔，請用本機 server 開：<br><br>
-      <code>cd vehicle-table &amp;&amp; python3 -m http.server 8791</code><br><br>
-      然後開 <code>http://127.0.0.1:8791/index.html</code></p></div>`;
-    return;
-  }
+<section id="table" class="wrap">
+  <div class="eyebrow">完整比較</div>
+  <h2 class="h2" id="tableTitle" style="margin-bottom:20px">完整比較</h2>
+  <div class="filters">
+    <label><span class="label">搜尋車款</span><input type="search" id="fQ" placeholder="RAV4、iX、Model 3…"></label>
+    <label><span class="label">廠牌</span><select id="fBrand"></select></label>
+    <label><span class="label">車體型式</span><select id="fBody"></select></label>
+    <label><span class="label">動力</span><select id="fPt"></select></label>
+    <label><span class="label">價格帶</span><select id="fBand"></select></label>
+  </div>
+  <div class="filter-foot">
+    <button class="linkbtn" data-act="clear">清除篩選</button>
+    <span style="font-size:12px;color:var(--muted)" id="filterNote"></span>
+  </div>
+  <div class="scroller">
+    <table class="grid">
+      <thead>
+        <tr>
+          <th class="left sortable" data-act="th" data-v="name">車款 <span data-arrow="name"></span></th>
+          <th class="left">動力 · 車體</th>
+          <th class="sortable" data-act="th" data-v="price">買入價 <span data-arrow="price"></span></th>
+          <th class="sortable" data-act="th" data-v="resale"><span id="resaleHead">賣出價</span> <span data-arrow="resale"></span></th>
+          <th class="sortable" data-act="th" data-v="maint">保養費 <span data-arrow="maint"></span></th>
+          <th class="sortable cost" data-act="th" data-v="cost"><span id="costHead">總額成本</span> <span data-arrow="cost"></span></th>
+          <th class="sortable" data-act="th" data-v="ratio" title="成本 ÷ 買入價：這段期間燒掉了買入價的幾成">燒掉車價比 <span data-arrow="ratio"></span></th>
+          <th class="center">信心</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="tableRows"></tbody>
+    </table>
+  </div>
+</section>
 
-  const rows = DATA.map(v => ({ v, c: costAt(v, 10) })).filter(r => r.c);
-  const key = {
-    monthly: r => r.c.monthly,
-    total: r => r.c.total,
-    retention: r => -r.c.retention,
-    price: r => r.v.purchase.real_cost,
-  }[sortBy];
-  rows.sort((a, b) => key(a) - key(b));
-  indexLabels(rows);
+<section id="compare" class="wrap">
+  <div class="eyebrow">並排比較</div>
+  <h2 class="h2" style="margin-bottom:12px">最多三台，逐項對照</h2>
+  <p class="muted" style="font-size:13px;margin-bottom:24px" id="compareHint"></p>
+  <div class="cards" id="compareCards"></div>
+</section>
 
-  out.innerHTML = `
-    <div class="panel">
-      <h3 style="margin-top:0">10 年總成本（持有 10 年、累積 ${nf(annualKm * 10)} km）</h3>
-      ${rankedChart(rows)}
+<section id="brands" class="wrap">
+  <div class="eyebrow">廠牌總覽</div>
+  <h2 class="h2" id="brandTitle" style="margin-bottom:20px">廠牌總覽</h2>
+  <div class="cards brands" id="brandCards"></div>
+  <p class="note" style="margin-top:22px">資料整理中：Nissan · Honda · Mitsubishi · Ford · Luxgen · Hyundai · Kia · Mazda · Suzuki · 商用貨卡。目前資料庫收錄 Toyota、Lexus、Volkswagen、Mercedes-Benz、BMW、Audi、Volvo、Porsche、Tesla 九個廠牌，國產房車與商用車尚未納入。</p>
+</section>
+
+<section id="method" class="wrap">
+  <div class="eyebrow">方法論</div>
+  <h2 class="h2" style="margin-bottom:26px">怎麼算的，哪裡不算</h2>
+  <div class="method">
+    <div>
+      <h5>公式</h5>
+      <p>成本 =（買入價 − 賣出價）+ 保養費 + 讓售成本。買入價 = 售價 − 現金折扣 + 領牌與代辦（不含首年稅金）。自售基準另加讓售成本（過戶代辦、售前整備、刊登費）；車商收購基準不含讓售成本，因為一次交割。</p>
     </div>
-    <div class="panel"><h3 style="margin-top:0">明細</h3><div class="chart">${overviewTable(rows, annualKm)}</div></div>
-    <div class="panel"><h3 style="margin-top:0">各車款細節</h3>${rows.map(r => detail(r.v, r.c, annualKm)).join("")}</div>`;
-}
+    <div>
+      <h5>里程假設</h5>
+      <p>每年 7,000 公里（6,000–8,000），約台灣平均的一半。這是誠實的限制：殘值報價取自低里程行情，而保養在這個里程下由「時間」觸發而非「里程」——每 6 個月或 10,000 公里先到者為準，所以十年約 20 次進廠，卻只跑 70,000 公里。若你每年跑 15,000 公里以上，保養會更高、殘值會更低。</p>
+    </div>
+    <div>
+      <h5>不列入</h5>
+      <p>牌照稅、燃料稅、油錢、電費、保險、停車、違規、改裝。理由是同級車之間差距有限，而且量級遠小於折舊。汰舊換新 5 萬與空汙補助 7,500 屬於稅務退還、且需報廢舊車，一併排除。</p>
+    </div>
+    <div>
+      <h5>資料信心</h5>
+      <p>每個殘值點都標記信心等級：高＝有同年份同車型實際成交或掛牌可對；中＝以前代或鄰近車型行情推算；低＝外推，尤其新世代車款缺少中古樣本。點任一車款可展開完整來源與推算紀錄。</p>
+    </div>
+    <div>
+      <h5>廠牌色</h5>
+      <p>色點與成本條採各廠牌廣為人知的識別色（Toyota 紅、BMW 天藍、Volvo 鐵藍、Porsche 金、賓士銀…）。少數以黑／銀為主識別的廠牌取其次要識別色，以維持九色可辨。</p>
+    </div>
+  </div>
+  <p class="note" style="margin-top:28px" id="methodFooter"></p>
+</section>
 
-load().then(({ data, from }) => {
-  DATA = data;
-  document.getElementById("src").textContent = from ? "資料來源：" + from : "";
-  document.getElementById("km").addEventListener("change", render);
-  document.getElementById("sort").addEventListener("change", render);
+</div>
+
+<div class="overlay" id="overlay" hidden>
+  <div class="drawer" id="drawer" role="dialog" aria-modal="true" aria-label="車款明細"></div>
+</div>
+
+<script type="module">
+import { CARS, META } from './web/car-data.js';
+
+const BRAND_COLOR = {
+  Toyota:'#E11B22', Lexus:'#A6743F', Volkswagen:'#2C6FC4', 'Mercedes-Benz':'#C8D0D6',
+  BMW:'#6FB8EE', Audi:'#8A9299', Volvo:'#2E8F97', Porsche:'#EFCB61', Tesla:'#F0623A'
+};
+
+// The design ships these four as Tweaks knobs. A static page has no Tweaks
+// panel, so they read from the query string instead and fall back to the same
+// defaults: ?barColor=單色琥珀 &basis=自售價 &confidence=0 &rankCount=20
+const params = new URLSearchParams(location.search);
+const intParam = (key, fallback, min, max) => {
+  const n = parseInt(params.get(key), 10);
+  return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
+};
+const PROPS = {
+  barColorMode: params.get('barColor') === '單色琥珀' ? '單色琥珀' : '廠牌識別色',
+  resaleBasis: ['自售價','車商收購價'].includes(params.get('basis')) ? params.get('basis') : '兩者並列',
+  showConfidence: params.get('confidence') !== '0',
+  rankCount: intParam('rankCount', 15, 5, 40)
+};
+
+const state = {
+  cars: CARS, meta: META, details: null,
+  years: 10, unit: 'total', sort: 'cost',
+  fBrand: '全部', fBody: '全部', fPt: '全部', fBand: '全部', q: '',
+  tSort: 'cost', tDir: 1, compare: [], detailId: null, rankAll: false
+};
+
+/* helpers ---------------------------------------------------------------- */
+const $ = id => document.getElementById(id);
+const esc = v => String(v).replace(/[&<>"']/g, c =>
+  ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+const color = brand => BRAND_COLOR[brand] || '#8A8073';
+const barColor = brand => PROPS.barColorMode === '單色琥珀' ? '#E0A03C' : color(brand);
+const mix = (c, pct) => `color-mix(in srgb,${c} ${pct}%,transparent)`;
+const tail = c => `repeating-linear-gradient(115deg,${mix(c,72)} 0 3px,transparent 3px 7px)`;
+
+const wan = n => (Math.round(n) / 10000).toFixed(1) + ' 萬';
+const amt = n => {
+  n = Math.round(n);
+  return Math.abs(n) < 100000 ? n.toLocaleString('en-US') + ' 元' : (n / 10000).toFixed(1) + ' 萬';
+};
+const div = () => state.unit === 'year' ? state.years : state.unit === 'month' ? state.years * 12 : 1;
+const unitWord = () => state.unit === 'year' ? '每年' : state.unit === 'month' ? '每月' : '總額';
+const u = n => amt(n / div());
+
+const conf = c => c === 'high' ? { cls:'high', label:'高' }
+  : c === 'low' ? { cls:'low', label:'低' } : { cls:'mid', label:'中' };
+const confPill = c => {
+  const { cls, label } = conf(c);
+  return `<span class="pill ${cls}">${label}</span>`;
+};
+
+const cp = car => car.cps.find(c => c.y === state.years) || car.cps[car.cps.length - 1];
+const low = car => { const c = cp(car); return Math.min(c.costPriv, c.costTrade); };
+const high = car => { const c = cp(car); return Math.max(c.costPriv, c.costTrade); };
+const basis = () => PROPS.resaleBasis;
+const pick = car => {
+  const c = cp(car);
+  if (basis() === '自售價') return { lo:c.costPriv, hi:c.costPriv, range:false };
+  if (basis() === '車商收購價') return { lo:c.costTrade, hi:c.costTrade, range:false };
+  return { lo:low(car), hi:high(car), range:true };
+};
+
+const filtered = () => {
+  const q = state.q.trim().toLowerCase();
+  return state.cars.filter(c =>
+    (state.fBrand === '全部' || c.brand === state.fBrand) &&
+    (state.fBody === '全部' || c.body === state.fBody) &&
+    (state.fPt === '全部' || c.pt === state.fPt) &&
+    (state.fBand === '全部' || c.band === state.fBand) &&
+    (!q || `${c.brand} ${c.model} ${c.trim}`.toLowerCase().includes(q)));
+};
+
+const sortKey = c => state.sort === 'ratio' ? low(c) / c.real
+  : state.sort === 'maint' ? cp(c).maintCum : low(c);
+
+const ranked = () => {
+  const list = filtered().slice();
+  if (state.sort === 'seg') {
+    const order = { '房車':0, 'SUV':1, '旅行車':2, 'MPV':3, '跑車':4 };
+    list.sort((a, b) => (order[a.body] - order[b.body]) || (low(a) - low(b)));
+    const seen = {};
+    return list.map(c => {
+      seen[c.body] = (seen[c.body] || 0) + 1;
+      return { car:c, label:`${c.body} #${seen[c.body]}` };
+    });
+  }
+  list.sort((a, b) => sortKey(a) - sortKey(b));
+  return list.map((c, i) => ({ car:c, label:String(i + 1).padStart(2, '0') }));
+};
+
+const median = a => {
+  if (!a.length) return 0;
+  const s = a.slice().sort((x, y) => x - y), m = s.length >> 1;
+  return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2;
+};
+
+/* mutations -------------------------------------------------------------- */
+function toggleCmp(id) {
+  state.compare = state.compare.includes(id)
+    ? state.compare.filter(x => x !== id)
+    : (state.compare.length >= 3 ? state.compare : state.compare.concat(id));
   render();
-});
+}
+
+function openDetail(id) {
+  state.detailId = id;
+  render();
+  if (!state.details) {
+    import('./web/car-detail.js')
+      .then(m => { state.details = m.DETAILS; render(); })
+      .catch(() => { state.details = {}; render(); });
+  }
+}
+
+function thSort(key) {
+  state.tDir = state.tSort === key ? -state.tDir : 1;
+  state.tSort = key;
+  render();
+}
+const arrow = key => state.tSort === key ? (state.tDir > 0 ? '↑' : '↓') : '';
+
+/* static controls -------------------------------------------------------- */
+function segButtons(host, options, isOn, onPick) {
+  host.innerHTML = options.map(([value, label]) =>
+    `<button type="button" data-v="${esc(value)}">${esc(label)}</button>`).join('');
+  host.querySelectorAll('button').forEach(btn => {
+    btn.addEventListener('click', () => { onPick(btn.dataset.v); render(); });
+  });
+  host._paint = () => host.querySelectorAll('button').forEach(btn =>
+    btn.setAttribute('aria-pressed', String(isOn(btn.dataset.v))));
+}
+
+function fillSelect(el, key, extras) {
+  const values = [...new Set(state.cars.map(c => c[key]))];
+  const options = [`<option value="全部">全部</option>`]
+    .concat(values.map(v => `<option value="${esc(v)}">${esc(v)}</option>`))
+    .concat(extras.map(e => `<option value="_${esc(e)}" disabled>${esc(e)}（資料整理中）</option>`));
+  el.innerHTML = options.join('');
+}
+
+function initControls() {
+  segButtons($('yearSeg'), [[1,'1 年'],[3,'3'],[5,'5'],[7,'7'],[10,'10 年']],
+    v => state.years === +v, v => { state.years = +v; });
+  segButtons($('unitSeg'), [['total','總額'],['year','每年'],['month','每月']],
+    v => state.unit === v, v => { state.unit = v; });
+  segButtons($('sortSeg'), [['cost','總成本'],['ratio','燒掉車價比'],['maint','保養費'],['seg','同級距']],
+    v => state.sort === v, v => { state.sort = v; });
+
+  fillSelect($('fBrand'), 'brand', ['Nissan','Honda','Mitsubishi','Ford','Luxgen','Hyundai','Kia','Mazda']);
+  fillSelect($('fBody'), 'body', ['貨卡 / 商用']);
+  fillSelect($('fPt'), 'pt', []);
+  fillSelect($('fBand'), 'band', ['100萬以下']);
+
+  const bind = (id, key) => $(id).addEventListener('change', e => {
+    state[key] = e.target.value;
+    render();
+  });
+  bind('fBrand', 'fBrand'); bind('fBody', 'fBody'); bind('fPt', 'fPt'); bind('fBand', 'fBand');
+  $('fQ').addEventListener('input', e => { state.q = e.target.value; render(); });
+
+  document.addEventListener('click', e => {
+    const el = e.target.closest('[data-act]');
+    if (!el) return;
+    const { act, v, id } = el.dataset;
+    if (act === 'rankAll') { state.rankAll = !state.rankAll; render(); }
+    else if (act === 'clear') {
+      Object.assign(state, { fBrand:'全部', fBody:'全部', fPt:'全部', fBand:'全部', q:'' });
+      $('fQ').value = '';
+      ['fBrand','fBody','fPt','fBand'].forEach(k => { $(k).value = '全部'; });
+      render();
+    }
+    else if (act === 'th') thSort(v);
+    else if (act === 'brandFilter') { state.fBrand = state.fBrand === v ? '全部' : v; $('fBrand').value = state.fBrand; render(); }
+    else if (act === 'open') openDetail(id);
+    else if (act === 'cmp') toggleCmp(id);
+    else if (act === 'closeDetail') { state.detailId = null; render(); }
+  });
+
+  $('overlay').addEventListener('click', e => {
+    if (e.target === $('overlay')) { state.detailId = null; render(); }
+  });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && state.detailId) { state.detailId = null; render(); }
+  });
+}
+
+/* sections --------------------------------------------------------------- */
+function renderRank() {
+  const list = ranked();
+  const maxHigh = Math.max(1, ...list.map(r => high(r.car)));
+  const rows = state.rankAll ? list : list.slice(0, PROPS.rankCount);
+
+  $('rankRows').innerHTML = rows.map(r => {
+    const c = r.car, p = pick(c), point = cp(c), col = barColor(c.brand);
+    const barLow = (p.lo / maxHigh * 100).toFixed(1) + '%';
+    const barTail = p.hi > p.lo ? `max(${((p.hi - p.lo) / maxHigh * 100).toFixed(2)}%,7px)` : '0px';
+    const picked = state.compare.includes(c.id);
+    return `<div class="rank-row">
+      <span class="pos">${esc(r.label)}</span>
+      <div class="who">
+        <i class="dot" title="${esc(c.brand)}" style="background:${color(c.brand)}"></i>
+        <button type="button" class="linkish" data-act="open" data-id="${esc(c.id)}">
+          <span class="name">${esc(c.brand + ' ' + c.model)}</span>
+          <span class="sub">${esc(`${c.trim} · ${c.pt} · ${c.body}`)}</span>
+        </button>
+      </div>
+      <div class="bars">
+        <div class="bar">
+          <i class="lo" style="background:${col};width:${barLow}"></i>
+          <i class="hi" style="left:${barLow};width:${barTail};background:${tail(col)};border-right:${p.hi > p.lo ? '2px solid ' + col : '0'}"></i>
+        </div>
+        <div class="bar-labels">
+          <span>${u(p.lo)}</span>
+          ${p.range ? `<span class="muted">→ ${u(p.hi)}</span>` : ''}
+        </div>
+      </div>
+      <div class="aside">
+        <span>保養 ${u(point.maintCum)}</span>
+        <span>燒掉車價 ${(p.lo / c.real * 100).toFixed(0)}%</span>
+      </div>
+      <div class="tail">
+        ${PROPS.showConfidence ? confPill(point.conf) : ''}
+        <button type="button" class="chip" data-act="cmp" data-id="${esc(c.id)}" aria-pressed="${picked}">${picked ? '已選' : '＋比較'}</button>
+      </div>
+    </div>`;
+  }).join('') || `<div class="empty">沒有符合條件的車款。</div>`;
+
+  $('rankTitle').textContent = state.sort === 'ratio' ? `${state.years} 年燒掉最少車價的車`
+    : state.sort === 'maint' ? `${state.years} 年保養費最低的車`
+    : state.sort === 'seg' ? `同級距內的 ${state.years} 年成本排名`
+    : `${state.years} 年真實成本最低的車`;
+  $('rankNote').textContent = basis() === '兩者並列'
+    ? '每條有兩端：自售賣掉是下限，直接給車商收購是上限。中間的斜紋就是你為了省麻煩付的價差。條的顏色是廠牌識別色。'
+    : `目前只顯示「${basis()}」基準（可用網址參數 basis 切換）。`;
+  $('rankAllBtn').textContent = state.rankAll ? `只看前 ${PROPS.rankCount} 名` : `展開全部 ${list.length} 款`;
+
+  const brands = [...new Set(state.cars.map(c => c.brand))].sort((a, b) => a.localeCompare(b));
+  $('legend').innerHTML = `<span class="label">廠牌</span>` + brands.map(b =>
+    `<button type="button" data-act="brandFilter" data-v="${esc(b)}" aria-pressed="${state.fBrand === b}">
+      <i style="background:${color(b)}"></i>${esc(b)}</button>`).join('');
+  return list;
+}
+
+function renderStructure(list) {
+  const top6 = list.slice(0, 6).map(r => r.car);
+  const scale = Math.max(1, ...top6.map(c => c.real + c.sell + cp(c).maintCum));
+  const pct = n => (Math.max(0, n) / scale * 100).toFixed(2) + '%';
+  $('structRows').innerHTML = top6.map(c => {
+    const point = cp(c), recovered = point.resalePriv, depreciation = c.real - recovered;
+    const col = barColor(c.brand);
+    return `<div>
+      <div class="struct-head">
+        <span class="who"><i style="background:${col}"></i>${esc(`${c.brand} ${c.model} ${c.trim}`)}</span>
+        <span class="nums">掏出 ${wan(c.real + c.sell + point.maintCum)} · 拿回 ${wan(recovered)} · 成本 <b>${wan(point.costPriv)}</b></span>
+      </div>
+      <div class="struct-bar">
+        <i style="background:${col};width:${pct(depreciation)}"></i>
+        <i style="background:var(--maint);width:${pct(point.maintCum)}"></i>
+        <i style="background:var(--sell);width:${pct(c.sell)}"></i>
+        <i style="background:repeating-linear-gradient(115deg,#3A352C 0 5px,transparent 5px 10px);width:${pct(recovered)}"></i>
+      </div>
+    </div>`;
+  }).join('') || `<div class="empty">沒有符合條件的車款。</div>`;
+}
+
+function renderTable() {
+  const key = c => {
+    const point = cp(c), p = pick(c);
+    switch (state.tSort) {
+      case 'name': return `${c.brand} ${c.model}`;
+      case 'price': return c.real;
+      case 'resale': return point.resalePriv;
+      case 'maint': return point.maintCum;
+      case 'ratio': return p.lo / c.real;
+      default: return p.lo;
+    }
+  };
+  const rows = filtered().slice().sort((a, b) => {
+    const x = key(a), y = key(b);
+    return (typeof x === 'string' ? x.localeCompare(y) : x - y) * state.tDir;
+  });
+
+  $('tableRows').innerHTML = rows.map(c => {
+    const point = cp(c), p = pick(c), picked = state.compare.includes(c.id);
+    return `<tr>
+      <td class="left"><div class="cell-car">
+        <i class="dot" title="${esc(c.brand)}" style="background:${color(c.brand)}"></i>
+        <button type="button" class="linkish" data-act="open" data-id="${esc(c.id)}">
+          <span class="name">${esc(c.brand + ' ' + c.model)}</span>
+          <span class="trim">${esc(c.trim)}</span>
+        </button></div></td>
+      <td class="left soft" style="font-size:12px">${esc(`${c.pt} · ${c.body}`)}</td>
+      <td>${wan(c.real)}</td>
+      <td class="soft">${wan(basis() === '車商收購價' ? point.resaleTrade : point.resalePriv)}</td>
+      <td class="soft">${u(point.maintCum)}</td>
+      <td class="cost">${p.range ? `${u(p.lo)} – ${u(p.hi)}` : u(p.lo)}</td>
+      <td>${(p.lo / c.real * 100).toFixed(0)}%</td>
+      <td class="center">${confPill(point.conf)}</td>
+      <td><button type="button" class="chip" data-act="cmp" data-id="${esc(c.id)}" aria-pressed="${picked}">${picked ? '已選' : '比較'}</button></td>
+    </tr>`;
+  }).join('') || `<tr><td class="left empty" colspan="9">沒有符合條件的車款。改一下篩選或清除條件。</td></tr>`;
+
+  $('tableTitle').textContent = `${unitWord()}成本 · ${state.years} 年 · ${rows.length} 款`;
+  $('resaleHead').textContent = `${state.years} 年${basis() === '車商收購價' ? '收購價' : '自售價'}`;
+  $('costHead').textContent = `${unitWord()}成本`;
+  $('filterNote').textContent = `${rows.length} / ${state.cars.length} 款符合條件 · 篩選同時作用於排行榜與比較表`;
+  document.querySelectorAll('[data-arrow]').forEach(el => {
+    el.textContent = arrow(el.dataset.arrow);
+  });
+}
+
+function renderCompare() {
+  const cards = state.compare.map(id => state.cars.find(c => c.id === id)).filter(Boolean);
+  $('compareCards').innerHTML = cards.map(c => {
+    const point = cp(c), p = pick(c), word = unitWord();
+    const metrics = [
+      [`${word}成本（自售）`, u(point.costPriv)],
+      [`${word}成本（收購）`, u(point.costTrade)],
+      ['買入價', wan(c.real)],
+      [`${state.years} 年自售價`, wan(point.resalePriv)],
+      [`${state.years} 年車商收購`, wan(point.resaleTrade)],
+      ['保養累計', amt(point.maintCum)],
+      ['燒掉車價比', `${(p.lo / c.real * 100).toFixed(0)}%`],
+      ['每公里成本', `${(point.costPriv / point.km).toFixed(1)} 元`],
+      ['資料信心', conf(point.conf).label]
+    ];
+    return `<div class="card">
+      <div class="head" style="border-top:3px solid ${color(c.brand)}">
+        <div class="row">
+          <div>
+            <div class="name">${esc(c.brand + ' ' + c.model)}</div>
+            <div class="sub">${esc(`${c.trim} · ${c.pt} · ${c.body} · ${c.band}`)}</div>
+          </div>
+          <button type="button" class="linkbtn" style="font-size:11px" data-act="cmp" data-id="${esc(c.id)}">移除</button>
+        </div>
+      </div>
+      <div class="body">${metrics.map(([k, v]) =>
+        `<div class="metric"><span class="k">${esc(k)}</span><span class="v">${esc(v)}</span></div>`).join('')}</div>
+    </div>`;
+  }).join('');
+  $('compareHint').textContent = state.compare.length
+    ? `已選 ${state.compare.length} / 3 台，數字隨上方年限與單位變動。`
+    : '還沒選車。在排行榜或比較表按「比較」加入，最多三台。';
+}
+
+function renderBrands() {
+  const brands = [...new Set(state.cars.map(c => c.brand))].sort((a, b) => a.localeCompare(b));
+  const visible = filtered();
+  $('brandCards').innerHTML = brands.map(b => {
+    const inFilter = visible.filter(c => c.brand === b);
+    const src = inFilter.length ? inFilter : state.cars.filter(c => c.brand === b);
+    const best = src.slice().sort((x, y) => low(x) - low(y))[0];
+    return `<div class="brand-card" style="border-top:3px solid ${color(b)}">
+      <div class="top"><span class="bname">${esc(b)}</span><span class="count">${src.length} 款</span></div>
+      <div class="big">${u(median(src.map(low)))}</div>
+      <div class="cap">中位成本 · 燒掉車價比中位 ${(median(src.map(c => low(c) / c.real)) * 100).toFixed(0)}%</div>
+      <div class="rule"></div>
+      <div class="best">最省：${best ? esc(`${best.model} ${best.trim}`) : '—'}<br><span class="mono">${best ? u(low(best)) : '—'}</span></div>
+    </div>`;
+  }).join('');
+  $('brandTitle').textContent = `${unitWord()}成本的廠牌中位數 · ${state.years} 年`;
+}
+
+function renderDetail() {
+  const overlay = $('overlay');
+  const car = state.cars.find(c => c.id === state.detailId);
+  if (!car) { overlay.hidden = true; $('drawer').innerHTML = ''; return; }
+  overlay.hidden = false;
+  $('drawer').style.borderLeftColor = color(car.brand);
+
+  const point = cp(car);
+  const det = (state.details || {})[car.id];
+  const hero = [
+    ['買入價', wan(car.real)],
+    [`${state.years} 年成本（自售）`, wan(point.costPriv)],
+    [`${state.years} 年成本（收購）`, wan(point.costTrade)],
+    ['每公里', `${(point.costPriv / point.km).toFixed(1)} 元`]
+  ];
+  const sourceGroup = (title, items) => `<div class="src-group">
+    <span class="label">${esc(title)}</span>
+    <div class="src-list">${items}</div></div>`;
+
+  $('drawer').innerHTML = `
+    <div class="top">
+      <div>
+        <h3>${esc(car.brand + ' ' + car.model)}</h3>
+        <div class="sub">${esc(`${car.trim} · ${car.year} 年式 · ${car.pt} · ${car.body} · ${car.band}`)}</div>
+      </div>
+      <button type="button" class="closebtn" data-act="closeDetail">關閉</button>
+    </div>
+    <div class="hero">${hero.map(([k, v]) =>
+      `<div><span class="label">${esc(k)}</span><div class="v">${esc(v)}</div></div>`).join('')}</div>
+
+    <h5>買入價拆解</h5>
+    <p class="para">售價 ${wan(car.list)} − 現金折扣 ${amt(car.disc)} + 領牌與代辦 ${amt(car.fees)} = 買入價 ${wan(car.real)}。讓售成本 ${amt(car.sell)}（自售基準才計入）。</p>
+
+    <h5 style="margin-bottom:11px">各年限對照</h5>
+    <div class="scroller" style="margin-bottom:26px">
+      <table class="grid">
+        <thead><tr>
+          <th class="left">年限</th><th>里程</th><th>自售價</th><th>車商收購</th>
+          <th>保養累計</th><th class="cost">成本（自售）</th><th>成本（收購）</th><th class="center">信心</th>
+        </tr></thead>
+        <tbody>${car.cps.map(c => `<tr>
+          <td class="left">${c.y} 年</td>
+          <td class="soft">${c.km.toLocaleString('en-US')} km</td>
+          <td>${wan(c.resalePriv)}</td>
+          <td>${wan(c.resaleTrade)}</td>
+          <td class="soft">${amt(c.maintCum)}</td>
+          <td class="cost">${wan(c.costPriv)}</td>
+          <td>${wan(c.costTrade)}</td>
+          <td class="center">${confPill(c.conf)}</td>
+        </tr>`).join('')}</tbody>
+      </table>
+    </div>
+
+    <h5 style="margin-bottom:12px">保養時程</h5>
+    <div class="timeline">${car.cps.map((c, i) => `<div>
+      <div class="row">
+        <span class="win">${i === 0 ? '0' : car.cps[i - 1].y}–${c.y} 年 · ${c.km.toLocaleString('en-US')} km</span>
+        <span class="cost">${amt(c.maintPeriod)}</span>
+        <span class="cum">累計 ${amt(c.maintCum)}</span>
+      </div>
+      <ul>${c.items.map(item => `<li>${esc(item)}</li>`).join('')}</ul>
+    </div>`).join('')}</div>
+
+    <details class="sources">
+      <summary>${det ? `完整來源與推算紀錄（${det.sources.length} 筆引用）` : '載入來源紀錄…'}</summary>
+      <div class="src-groups">
+        ${sourceGroup('假設', det ? `<p>${esc(det.assumptions)}</p>` : '')}
+        ${sourceGroup('殘值推算紀錄', det ? det.cpSources.map(c =>
+          `<div><div class="y">${c.y} 年 · 信心 ${conf(c.conf).label} · ${esc(c.as_of)}</div><p>${esc(c.source)}</p></div>`).join('') : '')}
+        ${sourceGroup('保養推算紀錄', det ? det.maintSources.map(c =>
+          `<div><div class="y">至 ${c.y} 年</div><p>${esc(c.source)}</p></div>`).join('') : '')}
+        ${sourceGroup('引用來源', det ? det.sources.map(s =>
+          `<div><a href="${esc(s.url)}" target="_blank" rel="noreferrer">${esc(s.name)}</a><p>${esc(s.note)}</p></div>`).join('') : '')}
+      </div>
+    </details>`;
+}
+
+/* render ----------------------------------------------------------------- */
+function render() {
+  ['yearSeg','unitSeg','sortSeg'].forEach(id => $(id)._paint());
+  const list = renderRank();
+  renderStructure(list);
+  renderTable();
+  renderCompare();
+  renderBrands();
+  renderDetail();
+  document.body.style.overflow = state.detailId ? 'hidden' : '';
+}
+
+$('carCount').textContent = `${META.count} 款 · 更新 ${META.updated}`;
+$('methodFooter').textContent =
+  `資料更新 ${META.updated} · ${META.count} 款車款 · 共 ${META.sourceCount} 筆引用來源 · 幣別 TWD。`
+  + `所有殘值為推估，非成交保證；新車價與行情會變動，決策前請自行核對。`;
+initControls();
+render();
 </script>
 </body>
 </html>
