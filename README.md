@@ -22,7 +22,20 @@
 要新增車款或更新行情，**先讀 `docs/METHODOLOGY.md`**。裡面每一條規則都對應一個真實
 踩過的坑，照著做才不會產出看起來合理但其實錯掉的數字。
 
-## 檢視
+## 線上版
+
+https://yingray.github.io/vehicle-table/
+
+GitHub Pages 從 `gh-pages` 分支的根目錄出站，內容與 `main` 相同。
+更新站台的方式：把要上線的 commit 推到 `gh-pages`。
+
+```sh
+git push origin main:gh-pages
+```
+
+`.nojekyll` 讓 Pages 跳過 Jekyll，直接照原樣送出檔案。
+
+## 本機檢視
 
 ```sh
 python3 tools/build_web_data.py   # 改過 data/vehicles.json 才需要重跑
