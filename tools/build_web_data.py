@@ -79,9 +79,15 @@ BODY_BY_MODEL = {
     "Cayenne": "SUV",
     "Model Y": "SUV",
     "Model X": "SUV",
+    "Range Rover Evoque": "SUV",
+    "Range Rover Velar": "SUV",
+    "Range Rover Sport": "SUV",
+    "Range Rover": "SUV",
     # 房車
     "ES300h": "房車",
     "ES500e": "房車",
+    "IS300h": "房車",
+    "LS500h": "房車",
     "Camry": "房車",
     "Crown": "房車",
     "Prius PHEV": "房車",
@@ -105,8 +111,19 @@ BODY_BY_MODEL = {
     "CLA": "房車",
     "E-Class": "房車",
     "EQE": "房車",
+    "S-Class": "房車",
+    "EQS": "房車",
     # 旅行車
     "V60": "旅行車",
+    "C-Class Estate": "旅行車",
+    "E-Class Estate": "旅行車",
+    "CLA Shooting Brake": "旅行車",
+    "3 Series Touring": "旅行車",
+    "5 Series Touring": "旅行車",
+    "i5 Touring": "旅行車",
+    "A5 Avant": "旅行車",
+    "A6 Avant": "旅行車",
+    "A6 Avant e-tron": "旅行車",
     # MPV
     "Alphard": "MPV",
     "Sienna": "MPV",
@@ -232,8 +249,10 @@ def detail(car: dict) -> dict:
             {"y": point["years"], "source": point["source"]}
             for point in car["maintenance"]["checkpoints"]
         ],
+        # The schema makes `url` optional, and a record that names a source it
+        # could not open honestly leaves it out. Render those as plain text.
         "sources": [
-            {"name": s["name"], "url": s["url"], "note": s.get("note", "")}
+            {"name": s["name"], "url": s.get("url", ""), "note": s.get("note", "")}
             for s in car["sources"]
         ],
     }

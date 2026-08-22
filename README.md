@@ -11,6 +11,7 @@
 | `data/vehicles.json` | 正式資料（array，一台車一個 element） |
 | `examples/vehicles.example.json` | 填寫範例（數字是示意，非真實行情） |
 | `validate.py` | 驗證 + 自動重算衍生欄位 |
+| `tools/check_records.py` | **合併前**檢查 agent 產出的單車記錄（殘值遞減、收購價、無衍生欄位） |
 | `tools/build_web_data.py` | 把 `data/vehicles.json` 拆成頁面用的兩個檔 |
 | `web/car-data.js` | 產生檔：排行榜、表格、圖表要的精簡欄位（首屏載入） |
 | `web/car-detail.js` | 產生檔：來源與推算紀錄（開明細才載入） |
@@ -70,22 +71,40 @@ python3 -m http.server 8791
 
 ## 資料現況與可信度
 
-`data/vehicles.json` 目前有 17 台台灣市場車款，數字是查證後填入，不是示意值。
-每個估價點都帶 `source` / `confidence` / `as_of`，共引用 277 筆來源。
-85 個殘值估價點的可信度分布：
+`data/vehicles.json` 目前有 149 台台灣市場車款，數字是查證後填入，不是示意值。
+每個估價點都帶 `source` / `confidence` / `as_of`，共引用 1,914 筆來源。
+
+| 廠牌 | 台數 | | 動力 | 台數 | | 車體 | 台數 |
+|---|---|---|---|---|---|---|---|
+| Lexus | 29 | | 汽油 | 77 | | SUV | 72 |
+| Mercedes-Benz | 29 | | 純電 | 34 | | 房車 | 42 |
+| BMW | 28 | | 油電 | 22 | | 旅行車 | 19 |
+| Audi | 22 | | 插電油電 | 10 | | MPV | 9 |
+| Toyota | 17 | | 柴油 | 6 | | 跑車 | 7 |
+| Volvo | 11 | | | | | | |
+| Tesla / Land Rover | 5 / 5 | | | | | | |
+| VW / Porsche | 2 / 1 | | | | | | |
+
+745 個殘值估價點的可信度分布：
 
 | 年份 | high | medium | low |
 |---|---|---|---|
-| 1 年 | 3 | 10 | 4 |
-| 3 年 | 0 | 16 | 1 |
-| 5 年 | 0 | 7 | 10 |
-| 7 年 | 0 | 0 | 17 |
-| 10 年 | 0 | 0 | 17 |
+| 1 年 | 12 | 88 | 49 |
+| 3 年 | 4 | 117 | 28 |
+| 5 年 | 1 | 72 | 76 |
+| 7 年 | 0 | 14 | 135 |
+| 10 年 | 0 | 0 | 149 |
 
-**7 年與 10 年全部是 `low`，這是結構性的**：這 17 台幾乎都是現行世代新車，
+**10 年全部是 `low`、7 年幾乎全部是 `low`，這是結構性的**：這些車幾乎都是現行世代新車，
 市場上根本沒有 7 年以上的成交紀錄。這些數字的做法是拿上一代車型在該車齡的
 真實中古行情，換算成保值率後套到這台車上，`source` 欄位裡有寫明是外推。
 拿來排序、比較高低是可靠的；拿單一絕對值當精算基礎則不行。
+
+實測 149 台的結果，**折舊佔 10 年總成本 69%–90%**，保養佔剩下的部分。
+所以選車時二手保值率的權重，應該遠高於保養便宜與否。
+
+跨車款交叉檢查已於 2026-08-22 跑完（七個視角 + 對抗式反駁驗證），
+結果與尚未修的既有問題記在 `TODO.md`。
 
 ## 欄位對照（你的原始名詞 → schema 欄位）
 
@@ -125,7 +144,11 @@ python3 -m http.server 8791
 3. 到 8891 / 車商報價查該車款 1/3/5/7/10 年、對應低里程帶的售價，
    填進 `value_checkpoints[].private_sale_price`。
 4. 查原廠保養手冊或車主社群，粗估各區間保養費填 `period_cost`。
-5. 跑 `python3 validate.py data/vehicles.json --fix`，再跑
+5. 派 agent 產出的記錄先各自存成一個 JSON，合併前跑
+   `python3 tools/check_records.py <暫存目錄>/*.json`。它擋的是 `validate.py` 擋不到的
+   錯：殘值沒有嚴格遞減、車商收購價高於自售價、記錄裡塞了衍生欄位。
+6. 合併後跑 `python3 validate.py data/vehicles.json --fix`，再跑
    `python3 tools/build_web_data.py` 把新車帶進頁面。
-6. `cost_summary` 就是答案：每年攤提成本 (`cost_per_year`) 與每公里成本 (`cost_per_km`)，
+   新車型還要在 `build_web_data.py` 的 `BODY_BY_MODEL` 補車體分類，否則建置會直接失敗。
+7. `cost_summary` 就是答案：每年攤提成本 (`cost_per_year`) 與每公里成本 (`cost_per_km`)，
    拿這兩個數字跨車款比較。

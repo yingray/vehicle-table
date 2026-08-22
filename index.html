@@ -807,7 +807,9 @@ function renderDetail() {
         ${sourceGroup('保養推算紀錄', det ? det.maintSources.map(c =>
           `<div><div class="y">至 ${c.y} 年</div><p>${esc(c.source)}</p></div>`).join('') : '')}
         ${sourceGroup('引用來源', det ? det.sources.map(s =>
-          `<div><a href="${esc(s.url)}" target="_blank" rel="noreferrer">${esc(s.name)}</a><p>${esc(s.note)}</p></div>`).join('') : '')}
+          `<div>${s.url
+            ? `<a href="${esc(s.url)}" target="_blank" rel="noreferrer">${esc(s.name)}</a>`
+            : esc(s.name)}<p>${esc(s.note)}</p></div>`).join('') : '')}
       </div>
     </details>`;
 }
